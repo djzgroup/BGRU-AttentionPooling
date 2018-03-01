@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow.contrib import layers
-from tensorflow.contrib import layers
 
 class Blstm_att():
     def __init__(self,batch_size,sentence_length,embed_sieze,HIDDEN_SIZE,num_label,word_embedding,seq_len,regularizer_rate,dropout_blstm_prob,dropout_word_prob):
@@ -17,19 +16,20 @@ class Blstm_att():
         self.seq_len = seq_len
         self.regularizer_rate = regularizer_rate
         self.dropout_word_prob = dropout_word_prob
-
+    # bidirectional GRU
     def BLSTM_layer(self,input):
         with tf.variable_scope('LSTM-cell'):
-            lstm_cell_fw = tf.nn.rnn_cell.GRUCell(self.HIDDEN_SIZE,kernel_initializer=tf.orthogonal_initializer())
-            lstm_cell_bw = tf.nn.rnn_cell.GRUCell(self.HIDDEN_SIZE,kernel_initializer=tf.orthogonal_initializer())
-        lstm_cell_fw = tf.contrib.rnn.DropoutWrapper(lstm_cell_fw, output_keep_prob=self.dropout_blstm_prob)
-        lstm_cell_bw = tf.contrib.rnn.DropoutWrapper(lstm_cell_bw, output_keep_prob=self.dropout_blstm_prob)
+            gru_cell_fw = tf.nn.rnn_cell.GRUCell(self.HIDDEN_SIZE,kernel_initializer=tf.orthogonal_initializer())
+            gru_cell_bw = tf.nn.rnn_cell.GRUCell(self.HIDDEN_SIZE,kernel_initializer=tf.orthogonal_initializer())
+        gru_cell_fw = tf.contrib.rnn.DropoutWrapper(gru_cell_fw, output_keep_prob=self.dropout_blstm_prob)
+        gru_cell_bw = tf.contrib.rnn.DropoutWrapper(gru_cell_bw, output_keep_prob=self.dropout_blstm_prob)
 
         with tf.variable_scope("BLSTM",initializer=tf.orthogonal_initializer()):
-                (fw_outputs,bw_outputs),state = tf.nn.bidirectional_dynamic_rnn(lstm_cell_fw, lstm_cell_bw,input,sequence_length=self.seq_len,dtype="float32")
+                (fw_outputs,bw_outputs),state = tf.nn.bidirectional_dynamic_rnn(gru_cell_fw, gru_cell_bw,input,sequence_length=self.seq_len,dtype="float32")
                 outputs = tf.add(fw_outputs,bw_outputs)
         return outputs
 
+     #modified attention model.
     def Sentence_attentionlayer(self,input):
         with tf.variable_scope("attention_layer"):
             inputs_act = layers.fully_connected(input, self.HIDDEN_SIZE, activation_fn=tf.nn.tanh)
@@ -40,12 +40,12 @@ class Blstm_att():
             return  attention
 
 
-
+    #2D max pooling
     def Maxpool(self,input,fliter_size,stride):
         with tf.variable_scope("pool_layer"):
             input = tf.reshape(input,[self.batch_size,self.sentence_length,self.embed_sieze,1])
             pool = tf.nn.max_pool(input, ksize=[1, fliter_size, fliter_size, 1], strides=[1, stride, stride, 1], padding="VALID")
-            tf.nn.convolution
+
             return pool
 
     def fully_connect(self,input):

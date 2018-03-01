@@ -1,0 +1,13 @@
+batch_size = 10
+sentence_length =66
+num_label = 2
+n_epochs = 100
+batch_dev = 10
+num_class = 2
+grad_clip = 5
+regularizer_rate = 0.00001
+fliter_size =2
+hidden_size =300
+embeddings_size = 300
+stride = 2
+model_path ="G:/20158835-hongmb/model"
